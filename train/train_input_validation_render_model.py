@@ -50,10 +50,7 @@ def main():
         frame4 = Tensor2img(target_tensor[0], 0)
         frame = np.concatenate([frame0, frame1, frame2, frame3, frame4], axis=1)
 
-        cv2.imshow("ss", frame)
-        cv2.waitKey(-1)
-        # break
-    cv2.destroyAllWindows()
+        cv2.imwrite('output_image.png', frame)
 
 if __name__ == "__main__":
     main()

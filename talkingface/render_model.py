@@ -59,13 +59,13 @@ class RenderModel:
         z_min, z_max = z_mid - z_len*0.9, z_mid + z_len*0.9
 
         # print(face_personal.shape, x_min, x_max, y_min, y_max, z_min, z_max)
-        coords_array = np.zeros([100, 150, 4])
-        for i in range(100):
-            for j in range(150):
-                coords_array[i, j, 0] = j/149
-                coords_array[i, j, 1] = i/100
+        coords_array = np.zeros([200, 300, 4])
+        for i in range(200):
+            for j in range(300):
+                coords_array[i, j, 0] = j/299
+                coords_array[i, j, 1] = i/200
                 # coords_array[i, j, 2] = int((-75 + abs(j - 75))*(2./3))
-                coords_array[i, j, 2] = ((j - 75)/ 75) ** 2
+                coords_array[i, j, 2] = ((j - 150)/ 150) ** 2
                 coords_array[i, j, 3] = 1
 
         coords_array = coords_array*np.array([x_max - x_min, y_max - y_min, z_max - z_min, 1]) + np.array([x_min, y_min, z_min, 0])

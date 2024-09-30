@@ -219,7 +219,7 @@ def prepare_video_data(video_path, Path_pkl, ref_img_index_list, ref_img = None,
     pts_driven = smooth_array(pts_driven).reshape(len(pts_driven), -1, 3)
     cap_input = cv2.VideoCapture(video_path)
     if ref_img is not None:
-        ref_img = cv2.imread(ref_img).reshape(256, -1, 256, 3).transpose(0, 2, 1, 3).reshape(256, 256, -1)
+        ref_img = cv2.imread(ref_img).reshape(512, -1, 512, 3).transpose(0, 2, 1, 3).reshape(512, 512, -1)
     else:
         if ref_img_index_list is None:
             ref_img_index_list = select_ref_index(pts_driven, n_ref=5, ratio=1 / 2.)

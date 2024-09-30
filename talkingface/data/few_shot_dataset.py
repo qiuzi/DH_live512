@@ -7,7 +7,7 @@ import glob
 import pickle
 import torch
 import torch.utils.data as data
-def get_image(A_path, crop_coords, input_type, resize= (256, 256)):
+def get_image(A_path, crop_coords, input_type, resize= (512, 512)):
     (x_min, y_min, x_max, y_max) = crop_coords
     size = (x_max - x_min, y_max - y_min)
 
@@ -42,7 +42,7 @@ def generate_input(img, keypoints, mask_keypoints, is_train = False, mode=["mout
     pts = pts.reshape((-1, 1, 2)).astype(np.int32)
     cv2.fillPoly(source_img, [pts], color=(0, 0, 0))
     source_face_egde = draw_face_feature_maps(source_keypoints, mode=mode, im_edges=target_img,
-                                              mouth_width = mouth_width * (256/(crop_coords[2] - crop_coords[0])), mouth_height = mouth_height * (256/(crop_coords[2] - crop_coords[0])))
+                                              mouth_width = mouth_width * (512/(crop_coords[2] - crop_coords[0])), mouth_height = mouth_height * (512/(crop_coords[2] - crop_coords[0])))
     source_img = np.concatenate([source_img, source_face_egde], axis=2)
     return source_img,target_img,crop_coords
 
@@ -95,7 +95,7 @@ class Few_Shot_Dataset(data.Dataset):
         assert len(self.driven_images) == len(self.driven_keypoints)
         assert len(self.driven_images) == len(self.driving_keypoints)
 
-        self.out_size = (256, 256)
+        self.out_size = (512, 512)
 
         self.sample_num = np.sum([len(i) for i in self.driven_images])
 
@@ -127,7 +127,7 @@ class Few_Shot_Dataset(data.Dataset):
         # adjusted = cv2.convertScaleAbs(img, alpha=alpha, beta=beta)
 
         self.alpha = (random.random() > 0.5)  # 正负因子
-        self.beta = np.ones([256,256,3]) * np.random.rand(3) * 20  # 色彩调整0-20个色差
+        self.beta = np.ones([512,512,3]) * np.random.rand(3) * 20  # 色彩调整0-20个色差
         self.beta = self.beta.astype(np.uint8)
 
 

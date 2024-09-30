@@ -51,7 +51,7 @@ INDEX_EYE = INDEX_LEFT_EYE + INDEX_RIGHT_EYE
 # print(len(main_keypoints_index))
 # print(len(set(main_keypoints_index)))
 FACE_MASK_INDEX = INDEX_FACE_OVAL[2:-2]
-def crop_face(keypoints, is_train = False, size = [512, 512]):
+def crop_face(keypoints, is_train = False, size = [1024, 1024]):
     """
     x_ratio: 裁剪出一个正方形，边长根据keypoints的宽度 * x_ratio决定
     """
@@ -74,7 +74,7 @@ def crop_face(keypoints, is_train = False, size = [512, 512]):
     y_max = min(size[0], y_max)
     return [x_min, y_min, x_max, y_max]
 
-def draw_face_feature_maps(keypoints, mode = ["mouth", "nose", "eye", "oval"], size=(256, 256), im_edges = None,  mouth_width = None, mouth_height = None):
+def draw_face_feature_maps(keypoints, mode = ["mouth", "nose", "eye", "oval"], size=(512, 512), im_edges = None,  mouth_width = None, mouth_height = None):
     w, h = size
     # edge map for face region from keypoints
     if im_edges is None:
@@ -254,7 +254,7 @@ def smooth_array(array, weight = [0.1,0.8,0.1], mode = "numpy"):
         return out0
 
 def generate_face_mask():
-    face_mask = np.zeros([256, 256], dtype=np.uint8)
+    face_mask = np.zeros([512, 512], dtype=np.uint8)
     for i in range(20):
         ii = 19 - i
         face_mask[ii, :] = 13 * i

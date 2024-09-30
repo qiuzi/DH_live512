@@ -190,14 +190,14 @@ def run(video_path, export_imgs = True):
         left_coincidence = int(max(left, 0))
         right_coincidence = int(min(x_max, vid_width))
         print("人脸活动范围：{}:{}, {}:{}".format(top_coincidence, bottom_coincidence, left_coincidence, right_coincidence))
-        out_size = 512
-        scale = 512. / size
+        out_size = 1024
+        scale = 1024. / size
         pts_3d = (pts_3d - np.array([left_coincidence, top_coincidence, 0])) * scale
         Path_output_pkl = "{}/keypoint_rotate.pkl".format(video_data_path)
         with open(Path_output_pkl, "wb") as f:
             pickle.dump(pts_3d, f)
         os.makedirs("{}/image".format(video_data_path), exist_ok=True)
-        ffmpeg_cmd = "ffmpeg -i {} -vf crop={}:{}:{}:{},scale=512:512:flags=neighbor -loglevel quiet -y {}/image/%06d.png".format(
+        ffmpeg_cmd = "ffmpeg -i {} -vf crop={}:{}:{}:{},scale=1024:1024:flags=bicubic -loglevel quiet -y {}/image/%06d.png".format(
             video_path,
             right_coincidence - left_coincidence,
             bottom_coincidence - top_coincidence,

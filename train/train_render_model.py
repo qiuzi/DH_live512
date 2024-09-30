@@ -21,12 +21,24 @@ import sys
 import torch.nn.functional as F
 import cv2
 from talkingface.data.few_shot_dataset import Few_Shot_Dataset,data_preparation
-
+import subprocess
 def Tensor2img(tensor_, channel_index):
     frame = tensor_[channel_index:channel_index + 3, :, :].detach().squeeze(0).cpu().float().numpy()
     frame = np.transpose(frame, (1, 2, 0)) * 255.0
     frame = frame.clip(0, 255)
     return frame.astype(np.uint8)
+
+def save_checkpoint(epoch, net_g, net_d, optimizer_g, optimizer_d, opt):
+    if not os.path.exists(opt.result_path):
+        os.makedirs(opt.result_path)
+    model_out_path = os.path.join(opt.result_path, 'epoch_interrupt.pth'.format(epoch))
+    states = {
+        'epoch': epoch + 1,
+        'state_dict': {'net_g': net_g.state_dict(), 'net_d': net_d.state_dict()},
+        'optimizer': {'net_g': optimizer_g.state_dict(), 'net_d': optimizer_d.state_dict()}
+    }
+    torch.save(states, model_out_path)
+    print("Checkpoint saved to {} due to interruption".format(model_out_path))
 
 if __name__ == "__main__":
     '''
@@ -38,10 +50,10 @@ if __name__ == "__main__":
     opt.source_channel = 3 * 2
     opt.target_channel = 3
     opt.ref_channel = n_ref * 3 * 2
-    opt.batch_size = 4
+    opt.batch_size = 5
     opt.result_path = "checkpoint/Dinet_five_ref"
     opt.resume = False
-    opt.resume_path = None
+    opt.resume_path = "checkpoint/Dinet_five_ref/epoch_interrupt.pth"
 
     # set seed
     random.seed(opt.seed)
@@ -58,7 +70,7 @@ if __name__ == "__main__":
     video_list.sort()
     train_dict_info = data_preparation(video_list[:])
     train_set = Few_Shot_Dataset(train_dict_info, n_ref=n_ref, is_train=True)
-    training_data_loader = DataLoader(dataset=train_set, num_workers=0, batch_size=opt.batch_size, shuffle=True)
+    training_data_loader = DataLoader(dataset=train_set, num_workers=8, batch_size=opt.batch_size, shuffle=True)
     train_log_path = "train_log.txt"
     train_data_length = len(training_data_loader)
     # init network
@@ -80,6 +92,10 @@ if __name__ == "__main__":
         net_d.load_state_dict(checkpoint['state_dict']['net_d'])
         optimizer_g.load_state_dict(checkpoint['optimizer']['net_g'])
         optimizer_d.load_state_dict(checkpoint['optimizer']['net_d'])
+    for param_group in optimizer_g.param_groups:
+        param_group['lr'] = opt.lr_g
+    for param_group in optimizer_d.param_groups:
+        param_group['lr'] = opt.lr_d
 
     # set criterion
     criterionGAN = GANLoss().cuda()
@@ -94,6 +110,15 @@ if __name__ == "__main__":
     os.makedirs(train_log_path, exist_ok=True)
     train_logger = SummaryWriter(train_log_path)
 
+def signal_handler(sig, frame):
+    print("Terminating TensorBoard...")
+    tensorboard_proc.terminate()  # 终止子进程
+    sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    tensorboard_proc = subprocess.Popen(['tensorboard', '--logdir', train_log_path, '--host', '0.0.0.0', '--port', '8123'])
+
+try:
     # start train
     for epoch in range(opt.start_epoch, opt.non_decay + opt.decay + 1):
         net_g.train()
@@ -195,3 +220,8 @@ if __name__ == "__main__":
             }
             torch.save(states, model_out_path)
             print("Checkpoint saved to {}".format(epoch))
+
+except KeyboardInterrupt:
+    print("Training interrupted. Saving checkpoint...")
+    save_checkpoint(epoch, net_g, net_d, optimizer_g, optimizer_d, opt)
+    sys.exit(0)

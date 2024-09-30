@@ -215,32 +215,29 @@ class DINet_five_Ref(nn.Module):
     def __init__(self, source_channel,ref_channel, cuda = True):
         super(DINet_five_Ref, self).__init__()
         self.source_in_conv = nn.Sequential(
-            SameBlock2d(source_channel,32,kernel_size=7, padding=3),
+            SameBlock2d(source_channel, 32, kernel_size=7, padding=3),
             DownBlock2d(32, 64, kernel_size=3, padding=1),
-            DownBlock2d(64, 128,kernel_size=3, padding=1)
+            DownBlock2d(64, 128, kernel_size=3, padding=1),
+            DownBlock2d(128, 128, kernel_size=3, padding=1)  # 新增的下采样层
         )
         self.ref_in_conv = nn.Sequential(
             SameBlock2d(ref_channel, 64, kernel_size=7, padding=3),
             DownBlock2d(64, 128, kernel_size=3, padding=1),
             DownBlock2d(128, 256, kernel_size=3, padding=1),
+            DownBlock2d(256, 256, kernel_size=3, padding=1)  # 新增的下采样层
         )
         self.trans_conv = nn.Sequential(
-            # 20 →10
             SameBlock2d(384, 128, kernel_size=3, padding=1),
-            # SameBlock2d(128, 128, kernel_size=11, padding=5),
             SameBlock2d(128, 128, kernel_size=7, padding=3),
             DownBlock2d(128, 128, kernel_size=3, padding=1),
-            # 10 →5
             SameBlock2d(128, 128, kernel_size=7, padding=3),
-            # SameBlock2d(128, 128, kernel_size=7, padding=3),
             DownBlock2d(128, 128, kernel_size=3, padding=1),
-            # 5 →3
             SameBlock2d(128, 128, kernel_size=3, padding=1),
             DownBlock2d(128, 128, kernel_size=3, padding=1),
-            # 3 →2
             SameBlock2d(128, 128, kernel_size=3, padding=1),
             DownBlock2d(128, 128, kernel_size=3, padding=1),
-
+            SameBlock2d(128, 128, kernel_size=3, padding=1),
+            DownBlock2d(128, 128, kernel_size=3, padding=1),  # 新增的下采样层
         )
 
         appearance_conv_list = []
@@ -255,9 +252,10 @@ class DINet_five_Ref(nn.Module):
         self.adaAT = AdaAT(128, 256, cuda)
         self.out_conv = nn.Sequential(
             SameBlock2d(384, 128, kernel_size=3, padding=1),
-            UpBlock2d(128,128,kernel_size=3, padding=1),
+            UpBlock2d(128, 128, kernel_size=3, padding=1),
             ResBlock2d(128, 128, 3, 1),
             UpBlock2d(128, 128, kernel_size=3, padding=1),
+            UpBlock2d(128, 128, kernel_size=3, padding=1),  # 新增的上采样层
             nn.Conv2d(128, 3, kernel_size=3, padding=1),
             nn.Sigmoid()
         )
