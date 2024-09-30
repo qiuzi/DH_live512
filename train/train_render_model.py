@@ -17,6 +17,7 @@ from torch.utils.data import DataLoader
 import random
 import numpy as np
 import os
+import signal
 import sys
 import torch.nn.functional as F
 import cv2
@@ -39,6 +40,25 @@ def save_checkpoint(epoch, net_g, net_d, optimizer_g, optimizer_d, opt):
     }
     torch.save(states, model_out_path)
     print("Checkpoint saved to {} due to interruption".format(model_out_path))
+# 启动 TensorBoard
+def start_tensorboard(log_dir):
+    tb_process = subprocess.Popen(
+        ['tensorboard', '--logdir', log_dir, '--host', '0.0.0.0', '--port', '6006'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    print(f"TensorBoard started at http://0.0.0.0:6006 (logdir: {log_dir})")
+    return tb_process
+
+# 关闭 TensorBoard
+def stop_tensorboard(tb_process):
+    print("Stopping TensorBoard...")
+    tb_process.terminate()
+    try:
+        tb_process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        tb_process.kill()
+    print("TensorBoard stopped.")
 
 if __name__ == "__main__":
     '''
@@ -108,15 +128,8 @@ if __name__ == "__main__":
 
     train_log_path = os.path.join("checkpoint/{}/log".format("DiNet_five_ref"), "train")
     os.makedirs(train_log_path, exist_ok=True)
+    tb_process = start_tensorboard(train_log_path)
     train_logger = SummaryWriter(train_log_path)
-
-def signal_handler(sig, frame):
-    print("Terminating TensorBoard...")
-    tensorboard_proc.terminate()  # 终止子进程
-    sys.exit(0)
-
-    signal.signal(signal.SIGINT, signal_handler)
-    tensorboard_proc = subprocess.Popen(['tensorboard', '--logdir', train_log_path, '--host', '0.0.0.0', '--port', '8123'])
 
 try:
     # start train
@@ -225,3 +238,8 @@ except KeyboardInterrupt:
     print("Training interrupted. Saving checkpoint...")
     save_checkpoint(epoch, net_g, net_d, optimizer_g, optimizer_d, opt)
     sys.exit(0)
+
+finally:
+        # 确保训练结束后关闭 TensorBoard
+        stop_tensorboard(tb_process)
+        train_logger.close()
