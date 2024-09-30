@@ -34,8 +34,8 @@ class RenderModel:
         source_channel = 6
         ref_channel = n_ref * 6
         self.__net = DINet(source_channel, ref_channel).cuda()
-        checkpoint = torch.load(ckpt_path)
-        self.__net.load_state_dict(checkpoint)
+        # checkpoint = torch.load(ckpt_path)
+        self.__net.load_state_dict(torch.load(ckpt_path)['state_dict']['net_g'])
         self.__net.eval()
 
     def reset_charactor(self, video_path, Path_pkl, ref_img_index_list = None):
