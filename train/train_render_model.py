@@ -52,7 +52,7 @@ if __name__ == "__main__":
     opt.ref_channel = n_ref * 3 * 2
     opt.batch_size = 5
     opt.result_path = "checkpoint/Dinet_five_ref"
-    opt.resume = False
+    opt.resume = True
     opt.resume_path = "checkpoint/Dinet_five_ref/epoch_interrupt.pth"
 
     # set seed
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     if opt.resume:
         print('loading checkpoint {}'.format(opt.resume_path))
         checkpoint = torch.load(opt.resume_path)
-        # opt.start_epoch = checkpoint['epoch']
+        opt.start_epoch = checkpoint['epoch']
         # opt.start_epoch = 200
         net_g_static = checkpoint['state_dict']['net_g']
         net_g.load_state_dict(net_g_static)
