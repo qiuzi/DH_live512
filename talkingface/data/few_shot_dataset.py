@@ -245,7 +245,7 @@ def generate_input_pixels(img, keypoints, rotationMatrix, pixels_mouth, mask_key
     # out_frame = img.copy()
     frame = pixels_mouth.reshape(15, 30, 3).clip(0, 255).astype(np.uint8)
 
-    frame = cv2.resize(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), (150, 100))
+    frame = cv2.resize(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), (300, 200))
     sharpen_image = frame.astype(np.float32)
     mean_ = int(np.mean(sharpen_image))
     max_, min_ = mean_ + 60, mean_ - 60
